@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html style="height:100%;">
+
+<head>
+  <meta charset='utf-8' />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0,minimum-scale=1.0, maximum-scale=1.0,user-scalable=no,shrink-to-fit=no,viewport-fit=cover">
+  <title>PWA</title>
+
+  <!--<link rel="icon" sizes="192x192" href="Icon/touch-icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">-->
+  <link rel="manifest" href="./manifest.json">
+
+  <script>
+    console.log("v7");
+    window.onload = function () {
+      //#region install prompt
+
+      let deferredInstallPrompt = null;//save a event and could be use later
+      window.addEventListener('beforeinstallprompt', async function (e) {
+        deferredInstallPrompt = e;
+        // log the platforms provided as options in an install prompt
+        console.log("platforms:", e.platforms); // e.g., ["web", "android", "windows"]
+
+        try {
+          let choiceResult = await e.userChoice;
+          console.log(choiceResult.outcome); // either "accepted" or "dismissed"
+        }
+        catch (e) {
+          console.error(e)
+        }
+      });
+
+      //click install
+      document.getElementById('installPWA').addEventListener('click', function (evt) {
+        deferredInstallPrompt.prompt();
+
+        //記錄結果
+        deferredInstallPrompt.userChoice
+          .then((choice) => {
+            if (choice.outcome === 'accepted') {
+              console.log('User accepted the A2HS prompt', choice);
+            } else {
+              console.log('User dismissed the A2HS prompt', choice);
+            }
+            deferredInstallPrompt = null;
+          });
+      });
+
+      //#endregion
+
+      //#region register serviceWorker
+
+      if (navigator.serviceWorker) {
+        if (navigator.serviceWorker.controller == null) {
+          navigator.serviceWorker.register('./sw.js').then(function (registration) {
+            // Registration was successful
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          }).catch(function (err) {
+            // registration failed :(
+            console.log('ServiceWorker registration failed: ', err);
+          });
+        }
+      }
+
+      //request notification;
+      if (Notification.permission == 'default') {
+        Notification.requestPermission(function (permission) {
+          // permission 可為「granted」（同意）、「denied」（拒絕）和「default」（未授權）
+          // 在這裡可針對使用者的授權做處理
+        });
+      }
+
+      //#endregion
+    }
+  </script>
+</head>
+
+<body>
+  <h1 id="installPWA">
+    installPWA
+  </h1>
+  <!-- <img src="./Images/p1.jpg" style="width: 100%;"> -->
+</body>
+
+</html>
